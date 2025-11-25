@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard Interactivo Pádel - Sus (v3 · Landscape)</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    header {
+      padding: 1.5rem 2rem;
+      background: #020617;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .btn-primary {
+      background: #22c55e;
+      color: #022c22;
+    }
+    .btn-secondary {
+      background: #1f2937;
+      color: #e5e7eb;
+      margin-left: 0.5rem;
+    }
+    main {
+      padding: 1.5rem 2rem 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 1.5rem;
+    }
+    .card {
+      background: #020617;
+      border-radius: 1rem;
+      padding: 1rem 1.2rem 1.2rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.4);
+      border: 1px solid rgba(148,163,184,0.25);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+    .card small {
+      color: #9ca3af;
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      margin-top: 0.6rem;
+      margin-bottom: 0.1rem;
+      color: #9ca3af;
+    }
+    input {
+      width: 100%;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.85rem;
+    }
+    input:focus {
+      outline: 1px solid #22c55e;
+      border-color: #22c55e;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border-bottom: 1px solid #1f2937;
+      padding: 0.3rem 0.4rem;
+      text-align: center;
+    }
+    th {
+      color: #9ca3af;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    tr:hover {
+      background: rgba(15,23,42,0.8);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+    .chip {
+      border-radius: 999px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+      border: 1px solid #374151;
+      color: #9ca3af;
+    }
+    .metric-badge {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.25rem;
+      font-size: 0.85rem;
+      margin-right: 0.8rem;
+    }
+    .metric-badge span.value {
+      font-weight: 700;
+      color: #22c55e;
+    }
+    .metric-badge span.label {
+      color: #9ca3af;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .footer-note {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    .golpe-highlight {
+      font-weight: 700;
+      color: #facc15;
+    }
+    .resumen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+    .resumen-card {
+      border-radius: 0.9rem;
+      border: 1px solid #1f2937;
+      padding: 0.6rem 0.75rem;
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.12), #020617);
+      font-size: 0.8rem;
+    }
+    .resumen-card h3 {
+      margin: 0 0 0.2rem 0;
+      font-size: 0.85rem;
+    }
+    .resumen-line {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.1rem;
+    }
+    .resumen-line span.label {
+      color: #9ca3af;
+    }
+    .resumen-line span.value {
+      font-weight: 600;
+    }
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Dashboard de Pádel · Sus</h1>
+      <div class="chips">
+        <div class="chip">Técnica + ataque prioritarios</div>
+        <div class="chip">Números sobre cada tipo de golpe</div>
+        <div class="chip">PDF en horizontal (landscape)</div>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-primary" onclick="exportToPDF()">Exportar a PDF</button>
+    </div>
+  </header>
+
+  <main id="dashboard-root">
+    <section class="grid">
+      <div class="card">
+        <h2>Nuevo partido</h2>
+        <small>Rellena los datos. El total de golpes se calcula automáticamente a partir de cada tipo de golpe.</small>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:0.5rem; gap:0.8rem;">
+          <div>
+            <label>Fecha / nombre</label>
+            <input id="inputFecha" placeholder="Ej: 2025-11-30 vs Juan" />
+          </div>
+          <div>
+            <label>Duración (minutos)</label>
+            <input id="inputDuracion" type="number" step="0.1" placeholder="Ej: 92" />
+          </div>
+          <div>
+            <label>Derechas</label>
+            <input id="inputDerecha" type="number" placeholder="Ej: 160" />
+          </div>
+          <div>
+            <label>Reveses</label>
+            <input id="inputReves" type="number" placeholder="Ej: 210" />
+          </div>
+          <div>
+            <label>Bandejas</label>
+            <input id="inputBandeja" type="number" placeholder="Ej: 290" />
+          </div>
+          <div>
+            <label>Smash</label>
+            <input id="inputSmash" type="number" placeholder="Ej: 35" />
+          </div>
+          <div>
+            <label>Calorías</label>
+            <input id="inputCalorias" type="number" placeholder="Ej: 840" />
+          </div>
+          <div>
+            <label>HR media</label>
+            <input id="inputHRMedia" type="number" placeholder="Ej: 130" />
+          </div>
+          <div>
+            <label>HR máxima</label>
+            <input id="inputHRMax" type="number" placeholder="Ej: 168" />
+          </div>
+          <div>
+            <label>Swing máximo (km/h)</label>
+            <input id="inputSwingMax" type="number" placeholder="Ej: 135" />
+          </div>
+          <div>
+            <label>Swing medio (km/h)</label>
+            <input id="inputSwingMedio" type="number" placeholder="Ej: 58" />
+          </div>
+          <div>
+            <label>Minutos en anaeróbico (opcional)</label>
+            <input id="inputAnaerobico" type="number" step="0.1" placeholder="Ej: 55" />
+          </div>
+        </div>
+        <div style="margin-top:0.9rem;">
+          <button class="btn btn-primary" onclick="addMatch()">Añadir partido</button>
+          <button class="btn btn-secondary" onclick="resetToDefault()">Reset a datos iniciales</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resumen rápido</h2>
+        <div id="resumenMetrics" style="margin-top:0.4rem;"></div>
+        <hr style="border-color:#1f2937; margin:0.8rem 0;" />
+        <h3 style="font-size:0.9rem; margin:0;">Índice de Rendimiento Sarah (IRS)</h3>
+        <small>Ponderado hacia <strong>técnica</strong> (swing medio) y <strong>ataque</strong> (swing máx, smash, volumen de golpes).</small>
+        <div id="irsList" style="margin-top:0.4rem; font-size:0.85rem;"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:1.5rem;" class="card">
+      <h2>Partidos registrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha / Nombre</th>
+            <th>Duración (min)</th>
+            <th class="golpe-highlight">Golpes totales</th>
+            <th class="golpe-highlight">Derechas</th>
+            <th class="golpe-highlight">Reveses</th>
+            <th class="golpe-highlight">Bandejas</th>
+            <th class="golpe-highlight">Smash</th>
+            <th>Calorías</th>
+            <th>HR media</th>
+            <th>HR máx</th>
+            <th>Swing máx</th>
+            <th>Swing medio</th>
+            <th>Anaeróbico (min)</th>
+          </tr>
+        </thead>
+        <tbody id="matchesTableBody"></tbody>
+      </table>
+
+      <div style="margin-top:1rem;">
+        <h3 style="font-size:0.9rem; margin:0 0 0.3rem 0;">Tarjetas resumen por partido</h3>
+        <small>Cada tarjeta muestra los números de golpes de forma muy clara para cada partido.</small>
+        <div id="resumenPartidos" class="resumen-grid"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:1.5rem;" class="grid">
+      <div class="card">
+        <h2>Golpes totales & calorías</h2>
+        <div id="chartGolpesCalorias" style="height:260px;"></div>
+      </div>
+      <div class="card">
+        <h2>Frecuencias cardíacas</h2>
+        <div id="chartHR" style="height:260px;"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:1.5rem;" class="grid">
+      <div class="card">
+        <h2>Velocidad de swing</h2>
+        <div id="chartSwing" style="height:260px;"></div>
+      </div>
+      <div class="card">
+        <h2>Evolución índice IRS</h2>
+        <div id="chartIRS" style="height:260px;"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:1.5rem;" class="card">
+      <h2>Distribución por tipo de golpe</h2>
+      <small>Números visibles encima de cada barra para que identifiques cada tipo de golpe sin dudas.</small>
+      <div id="chartTiposGolpe" style="height:320px; margin-top:0.5rem;"></div>
+    </section>
+
+    <p class="footer-note">
+      Este dashboard es un archivo HTML estático. Puedes enviarlo por WhatsApp, correo o compartirlo con tu compañero. 
+      Cuando tengas nuevos partidos, solo tienes que editar este archivo en tu navegador y volver a exportar el PDF.
+    </p>
+  </main>
+
+  <script>
+    // Datos iniciales (dos partidos) incluyendo tipos de golpe
+    let matches = [
+      {
+        label: "2025-11-18 · Noche",
+        duracion: 95.9,
+        derecha: 165,
+        reves: 223,
+        bandeja: 298,
+        smash: 37,
+        calorias: 845,
+        hrMedia: 129,
+        hrMax: 168,
+        swingMax: 133,
+        swingMedio: 59,
+        anaerobico: 59.7
+      },
+      {
+        label: "2025-11-23 · Mañana",
+        duracion: 88.6,
+        derecha: 153,
+        reves: 203,
+        bandeja: 279,
+        smash: 23,
+        calorias: 821,
+        hrMedia: 130,
+        hrMax: 163,
+        swingMax: 138,
+        swingMedio: 57,
+        anaerobico: 51.1
+      }
+    ];
+
+    function resetToDefault() {
+      matches = [
+        {
+          label: "2025-11-18 · Noche",
+          duracion: 95.9,
+          derecha: 165,
+          reves: 223,
+          bandeja: 298,
+          smash: 37,
+          calorias: 845,
+          hrMedia: 129,
+          hrMax: 168,
+          swingMax: 133,
+          swingMedio: 59,
+          anaerobico: 59.7
+        },
+        {
+          label: "2025-11-23 · Mañana",
+          duracion: 88.6,
+          derecha: 153,
+          reves: 203,
+          bandeja: 279,
+          smash: 23,
+          calorias: 821,
+          hrMedia: 130,
+          hrMax: 163,
+          swingMax: 138,
+          swingMedio: 57,
+          anaerobico: 51.1
+        }
+      ];
+      renderAll();
+    }
+
+    function addMatch() {
+      const label = document.getElementById("inputFecha").value || "Partido sin nombre";
+      const dur = parseFloat(document.getElementById("inputDuracion").value || "0");
+      const derecha = parseInt(document.getElementById("inputDerecha").value || "0");
+      const reves = parseInt(document.getElementById("inputReves").value || "0");
+      const bandeja = parseInt(document.getElementById("inputBandeja").value || "0");
+      const smash = parseInt(document.getElementById("inputSmash").value || "0");
+      const calorias = parseInt(document.getElementById("inputCalorias").value || "0");
+      const hrMedia = parseInt(document.getElementById("inputHRMedia").value || "0");
+      const hrMax = parseInt(document.getElementById("inputHRMax").value || "0");
+      const swingMax = parseFloat(document.getElementById("inputSwingMax").value || "0");
+      const swingMedio = parseFloat(document.getElementById("inputSwingMedio").value || "0");
+      const anaerobico = parseFloat(document.getElementById("inputAnaerobico").value || "0");
+
+      matches.push({
+        label,
+        duracion: dur,
+        derecha,
+        reves,
+        bandeja,
+        smash,
+        calorias,
+        hrMedia,
+        hrMax,
+        swingMax,
+        swingMedio,
+        anaerobico
+      });
+
+      renderAll();
+    }
+
+    function computeIRS() {
+      if (matches.length === 0) return [];
+
+      const maxVals = {
+        golpes: Math.max(...matches.map(m => m.derecha + m.reves + m.bandeja + m.smash)),
+        swingMedio: Math.max(...matches.map(m => m.swingMedio)),
+        swingMax: Math.max(...matches.map(m => m.swingMax)),
+        anaerobico: Math.max(...matches.map(m => m.anaerobico)),
+        smash: Math.max(...matches.map(m => m.smash)),
+        duracion: Math.max(...matches.map(m => m.duracion))
+      };
+
+      return matches.map(m => {
+        const golpesTot = m.derecha + m.reves + m.bandeja + m.smash;
+        function norm(v, max) {
+          if (!max || max === 0) return 0;
+          return v / max;
+        }
+        // Técnica + ataque priorizados
+        const score =
+          0.25 * norm(m.swingMedio, maxVals.swingMedio) +
+          0.20 * norm(m.swingMax, maxVals.swingMax) +
+          0.20 * norm(m.smash, maxVals.smash) +
+          0.15 * norm(golpesTot, maxVals.golpes) +
+          0.10 * norm(m.duracion, maxVals.duracion) +
+          0.10 * norm(m.anaerobico, maxVals.anaerobico);
+
+        return Math.round(score * 100);
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("matchesTableBody");
+      tbody.innerHTML = "";
+      matches.forEach((m, idx) => {
+        const golpesTot = m.derecha + m.reves + m.bandeja + m.smash;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${m.label}</td>
+          <td>${m.duracion.toFixed(1)}</td>
+          <td class="golpe-highlight">${golpesTot}</td>
+          <td class="golpe-highlight">${m.derecha}</td>
+          <td class="golpe-highlight">${m.reves}</td>
+          <td class="golpe-highlight">${m.bandeja}</td>
+          <td class="golpe-highlight">${m.smash}</td>
+          <td>${m.calorias}</td>
+          <td>${m.hrMedia}</td>
+          <td>${m.hrMax}</td>
+          <td>${m.swingMax.toFixed(1)}</td>
+          <td>${m.swingMedio.toFixed(1)}</td>
+          <td>${m.anaerobico ? m.anaerobico.toFixed(1) : "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderResumenPartidos() {
+      const container = document.getElementById("resumenPartidos");
+      container.innerHTML = "";
+      const irsScores = computeIRS();
+      matches.forEach((m, idx) => {
+        const golpesTot = m.derecha + m.reves + m.bandeja + m.smash;
+        const div = document.createElement("div");
+        div.className = "resumen-card";
+        div.innerHTML = `
+          <h3>Partido ${idx + 1} · ${m.label}</h3>
+          <div class="resumen-line"><span class="label">Golpes totales</span><span class="value">${golpesTot}</span></div>
+          <div class="resumen-line"><span class="label">Derechas</span><span class="value">${m.derecha}</span></div>
+          <div class="resumen-line"><span class="label">Reveses</span><span class="value">${m.reves}</span></div>
+          <div class="resumen-line"><span class="label">Bandejas</span><span class="value">${m.bandeja}</span></div>
+          <div class="resumen-line"><span class="label">Smash</span><span class="value">${m.smash}</span></div>
+          <div class="resumen-line"><span class="label">IRS</span><span class="value">${irsScores[idx]}/100</span></div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderResumen() {
+      if (matches.length === 0) return;
+      const totalPartidos = matches.length;
+      const totalGolpes = matches.reduce((s,m) => s + m.derecha + m.reves + m.bandeja + m.smash, 0);
+      const totalMin = matches.reduce((s,m) => s + m.duracion, 0);
+      const irsScores = computeIRS();
+      const mediaIRS = irsScores.reduce((s,v) => s + v, 0) / totalPartidos;
+
+      const resumenDiv = document.getElementById("resumenMetrics");
+      resumenDiv.innerHTML = `
+        <div class="metric-badge"><span class="value">${totalPartidos}</span><span class="label">Partidos</span></div>
+        <div class="metric-badge"><span class="value">${totalGolpes}</span><span class="label">Golpes totales</span></div>
+        <div class="metric-badge"><span class="value">${totalMin.toFixed(0)}</span><span class="label">Minutos jugados</span></div>
+        <div class="metric-badge"><span class="value">${mediaIRS.toFixed(1)}</span><span class="label">IRS medio</span></div>
+      `;
+
+      const irsList = document.getElementById("irsList");
+      irsList.innerHTML = matches.map((m, idx) => {
+        return `<div>• ${m.label}: <strong>${irsScores[idx]}</strong>/100</div>`;
+      }).join("");
+    }
+
+    function renderCharts() {
+      const labels = matches.map(m => m.label);
+      const golpesTot = matches.map(m => m.derecha + m.reves + m.bandeja + m.smash);
+      const calorias = matches.map(m => m.calorias);
+      const hrMedia = matches.map(m => m.hrMedia);
+      const hrMax = matches.map(m => m.hrMax);
+      const swingMax = matches.map(m => m.swingMax);
+      const swingMedio = matches.map(m => m.swingMedio);
+      const irsScores = computeIRS();
+      const derechas = matches.map(m => m.derecha);
+      const reveses = matches.map(m => m.reves);
+      const bandejas = matches.map(m => m.bandeja);
+      const smashes = matches.map(m => m.smash);
+
+      Plotly.newPlot("chartGolpesCalorias", [
+        { x: labels, y: golpesTot, type: "bar", name: "Golpes totales", text: golpesTot.map(v => v.toString()), textposition: "outside" },
+        { x: labels, y: calorias, type: "bar", name: "Calorías", text: calorias.map(v => v.toString()), textposition: "outside" }
+      ], {
+        paper_bgcolor: "#020617",
+        plot_bgcolor: "#020617",
+        font: { color: "#e5e7eb" },
+        barmode: "group",
+        margin: { t: 24, l: 40, r: 10, b: 80 }
+      }, {displayModeBar:false});
+
+      Plotly.newPlot("chartHR", [
+        { x: labels, y: hrMedia, type: "scatter", mode: "lines+markers+text", name: "HR media",
+          text: hrMedia.map(v => v.toString()), textposition: "top center" },
+        { x: labels, y: hrMax, type: "scatter", mode: "lines+markers+text", name: "HR máx",
+          text: hrMax.map(v => v.toString()), textposition: "bottom center" }
+      ], {
+        paper_bgcolor: "#020617",
+        plot_bgcolor: "#020617",
+        font: { color: "#e5e7eb" },
+        margin: { t: 24, l: 40, r: 10, b: 80 }
+      }, {displayModeBar:false});
+
+      Plotly.newPlot("chartSwing", [
+        { x: labels, y: swingMax, type: "bar", name: "Swing máx", text: swingMax.map(v => v.toString()), textposition: "outside" },
+        { x: labels, y: swingMedio, type: "bar", name: "Swing medio", text: swingMedio.map(v => v.toString()), textposition: "outside" }
+      ], {
+        paper_bgcolor: "#020617",
+        plot_bgcolor: "#020617",
+        font: { color: "#e5e7eb" },
+        barmode: "group",
+        margin: { t: 24, l: 40, r: 10, b: 80 }
+      }, {displayModeBar:false});
+
+      Plotly.newPlot("chartIRS", [
+        { x: labels, y: irsScores, type: "scatter", mode: "lines+markers+text", name: "IRS",
+          text: irsScores.map(v => v.toString()), textposition: "top center" }
+      ], {
+        paper_bgcolor: "#020617",
+        plot_bgcolor: "#020617",
+        font: { color: "#e5e7eb" },
+        yaxis: { range: [0, 100] },
+        margin: { t: 24, l: 40, r: 10, b: 80 }
+      }, {displayModeBar:false});
+
+      Plotly.newPlot("chartTiposGolpe", [
+        { x: labels, y: derechas, type: "bar", name: "Derechas",
+          text: derechas.map(v => v.toString()), textposition: "outside" },
+        { x: labels, y: reveses, type: "bar", name: "Reveses",
+          text: reveses.map(v => v.toString()), textposition: "outside" },
+        { x: labels, y: bandejas, type: "bar", name: "Bandejas",
+          text: bandejas.map(v => v.toString()), textposition: "outside" },
+        { x: labels, y: smashes, type: "bar", name: "Smash",
+          text: smashes.map(v => v.toString()), textposition: "outside" }
+      ], {
+        paper_bgcolor: "#020617",
+        plot_bgcolor: "#020617",
+        font: { color: "#e5e7eb" },
+        barmode: "group",
+        margin: { t: 24, l: 40, r: 10, b: 100 }
+      }, {displayModeBar:false});
+    }
+
+    function renderAll() {
+      renderTable();
+      renderResumen();
+      renderResumenPartidos();
+      renderCharts();
+    }
+
+    function exportToPDF() {
+      const element = document.getElementById("dashboard-root");
+      const opt = {
+        margin:       0.3,
+        filename:     'dashboard_padel_sus_landscape.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'cm', format: 'a4', orientation: 'landscape' }
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+
+    // Inicialización
+    renderAll();
+  </script>
+</body>
+</html>
