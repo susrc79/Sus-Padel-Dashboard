@@ -210,7 +210,7 @@
         <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top:0.5rem; gap:0.8rem;">
           <div>
             <label>Fecha / nombre</label>
-            <input id="inputFecha" placeholder="Ej: 2025-11-30 vs Juan" />
+            <input id="inputFecha" placeholder="Ej: 2025-11-30 20:00" />
           </div>
           <div>
             <label>Duración (minutos)</label>
@@ -339,10 +339,10 @@
   </main>
 
   <script>
-    // Datos iniciales (dos partidos) incluyendo tipos de golpe
+    // Datos iniciales (tres partidos) incluyendo tipos de golpe
     let matches = [
       {
-        label: "2025-11-18 · Noche",
+        label: "2025-11-18 20:00",
         duracion: 95.9,
         derecha: 165,
         reves: 223,
@@ -356,7 +356,7 @@
         anaerobico: 59.7
       },
       {
-        label: "2025-11-23 · Mañana",
+        label: "2025-11-23 11:00",
         duracion: 88.6,
         derecha: 153,
         reves: 203,
@@ -368,13 +368,27 @@
         swingMax: 138,
         swingMedio: 57,
         anaerobico: 51.1
+      },
+      {
+        label: "2025-11-25 20:01",
+        duracion: 90.8,
+        derecha: 159,
+        reves: 198,
+        bandeja: 244,
+        smash: 29,
+        calorias: 792,
+        hrMedia: 123,
+        hrMax: 156,
+        swingMax: 133,
+        swingMedio: 55,
+        anaerobico: 47.2
       }
     ];
 
     function resetToDefault() {
       matches = [
         {
-          label: "2025-11-18 · Noche",
+          label: "2025-11-18 20:00",
           duracion: 95.9,
           derecha: 165,
           reves: 223,
@@ -388,7 +402,7 @@
           anaerobico: 59.7
         },
         {
-          label: "2025-11-23 · Mañana",
+          label: "2025-11-23 11:00",
           duracion: 88.6,
           derecha: 153,
           reves: 203,
@@ -400,6 +414,20 @@
           swingMax: 138,
           swingMedio: 57,
           anaerobico: 51.1
+        },
+        {
+          label: "2025-11-25 20:01",
+          duracion: 90.8,
+          derecha: 159,
+          reves: 198,
+          bandeja: 244,
+          smash: 29,
+          calorias: 792,
+          hrMedia: 123,
+          hrMax: 156,
+          swingMax: 133,
+          swingMedio: 55,
+          anaerobico: 47.2
         }
       ];
       renderAll();
